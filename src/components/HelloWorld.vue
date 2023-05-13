@@ -54,7 +54,7 @@ export default {
   },
   beforeMount(){
     this.registration = navigator.serviceWorker.register("sw.js");
-  }
+  },
   methods: {
     applySymbol(rowIndex, columIndex, isCrossPlayer) {
       const index = rowIndex * this.columns + columIndex;
