@@ -9,7 +9,7 @@ const notificationPermissionState = ref(Notification.permission);
 window.addEventListener("deviceorientation", (event) => {
   console.log(`${event.alpha} : ${event.beta} : ${event.gamma}`);
 });
-const registration = await navigator.serviceWorker.getRegistration();
+
 console.log(registration)
 const sendNotification = async () => {
   if(Notification.permission === 'granted') {
@@ -49,8 +49,12 @@ export default {
       rows: 3,
       isCrossPlayer: true,
       notificationPermissionState,
+      registration,
     }
   },
+  beforeMount(){
+    this.registration = navigator.serviceWorker.register("sw.js");
+  }
   methods: {
     applySymbol(rowIndex, columIndex, isCrossPlayer) {
       const index = rowIndex * this.columns + columIndex;
