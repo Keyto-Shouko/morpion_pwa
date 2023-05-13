@@ -1,45 +1,11 @@
 <script setup lang="js">
-
 </script>
 
 <script>
-import { ref } from 'vue';
-// Create a reactive reference for notificationPermissionState
-const notificationPermissionState = ref(Notification.permission);
 window.addEventListener("deviceorientation", (event) => {
   console.log(`${event.alpha} : ${event.beta} : ${event.gamma}`);
 });
 
-console.log(registration)
-const sendNotification = async () => {
-  if(Notification.permission === 'granted') {
-    showNotification("test");
-  }
-  else {
-    if(Notification.permission !== 'denied') {
-      const permission = await Notification.requestPermission();
-  
-      if(permission === 'granted') {
-        showNotification("test");
-      }
-    }
-  }
-  };
-  
-  const showNotification = body => {
-  const title = 'What PWA Can Do Today';
-  
-  const payload = {
-    body
-  };
-  
-  if('showNotification' in this.registration) {
-    this.registration.showNotification(title, payload);
-  }
-  else {
-    new Notification(title, payload);
-  }
-};
 //morpion grid
 export default {
   data() {
@@ -48,12 +14,9 @@ export default {
       columns: 3,
       rows: 3,
       isCrossPlayer: true,
-      notificationPermissionState,
-      registration,
+      registration: navigator.serviceWorker.getRegistration(),
+      notificationPermissionState : Notification.permission
     }
-  },
-  beforeMount(){
-    this.registration = navigator.serviceWorker.register("sw.js");
   },
   methods: {
     applySymbol(rowIndex, columIndex, isCrossPlayer) {
@@ -89,7 +52,7 @@ export default {
         }
         if (win) {
           console.log(`Player ${playerSymbol} wins in row ${i + 1}!`);
-          sendNotification(playerSymbol)
+          this.sendNotification(playerSymbol)
           return;
         }
       }
@@ -105,7 +68,7 @@ export default {
         }
         if (win) {
           console.log(`Player ${playerSymbol} wins in column ${i + 1}!`);
-          sendNotification(playerSymbol)
+          this.sendNotification(playerSymbol)
           return;
         }
       }
@@ -119,7 +82,7 @@ export default {
           diagonal.every((index) => this.bordState[index] === playerSymbol)
         ) {
           console.log(`Player ${playerSymbol} wins on diagonal!`);
-          sendNotification(playerSymbol)
+          this.sendNotification(playerSymbol)
           return true;
         }
         return false;
@@ -129,7 +92,7 @@ export default {
         return;
       }
     },
-    /*sendNotification(symbolOfWinner) {
+    sendNotification(symbolOfWinner) {
       //send a notification to the player
       let notification
       if (Notification.permission === 'granted') {
@@ -154,35 +117,14 @@ export default {
         // Clean up the notification
         notification.close();
       };
-      navigator.serviceWorker.register("sw.js");
-      Notification.requestPermission((result) => {
-    if (result === "granted") {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.showNotification("Vibration Sample", {
-          body: "Buzz! Buzz!",
-          icon: "../images/touch/chrome-touch-icon-192x192.png",
-          vibrate: [200, 100, 200, 100, 200, 100, 200],
-          tag: "vibration-sample",
-        });
-      });
-    }
-  });
     },
     promptNotification() {
+      console.log("permission", Notification.permission)
       if (Notification.permission !== 'granted') {
-        Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') {
-            // User has granted permission
-            console.log('Notification permission granted');
-            this.notificationPermissionState = Notification.permission
-          } else {
-            // User has denied permission or dismissed the prompt
-            console.log('Notification permission denied');
-            this.notificationPermissionState = Notification.permission
-          }
-        });
+        Notification.requestPermission();
+
       }
-    },*/
+    },
     reset(){
       this.bordState = ["", "", "", "", "", "", "", "", ""],
       this.isCrossPlayer = true
@@ -208,7 +150,7 @@ export default {
       </td>
     </tr>
   </table>
-  <button v-on:click="sendNotification">Get Notifications?</button>
+  <button v-on:click="promptNotification">Get Notifications?</button>
   <!-- add a reset button -->
   <button v-on:click="reset">Reset</button>
 </template>
