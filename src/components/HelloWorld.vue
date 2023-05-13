@@ -124,6 +124,10 @@ export default {
         Notification.requestPermission();
 
       }
+    },
+    reset(){
+      this.bordState = ["", "", "", "", "", "", "", "", ""],
+      this.isCrossPlayer = true
     }
   }
 }
@@ -146,6 +150,7 @@ export default {
   </table>
   <button v-on:click="promptNotification">Get Notifications?</button>
   <!-- add a reset button -->
+  <button v-on:click="reset">Reset</button>
 </template>
 
 
