@@ -2,7 +2,9 @@
 </script>
 
 <script>
-
+window.addEventListener("deviceorientation", (event) => {
+  console.log(`${event.alpha} : ${event.beta} : ${event.gamma}`);
+});
 //morpion grid
 export default {
   data() {
