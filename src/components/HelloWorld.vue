@@ -9,6 +9,37 @@ const notificationPermissionState = ref(Notification.permission);
 window.addEventListener("deviceorientation", (event) => {
   console.log(`${event.alpha} : ${event.beta} : ${event.gamma}`);
 });
+const registration = await navigator.serviceWorker.getRegistration();
+console.log(registration)
+const sendNotification = async () => {
+  if(Notification.permission === 'granted') {
+    showNotification("test");
+  }
+  else {
+    if(Notification.permission !== 'denied') {
+      const permission = await Notification.requestPermission();
+  
+      if(permission === 'granted') {
+        showNotification("test");
+      }
+    }
+  }
+  };
+  
+  const showNotification = body => {
+  const title = 'What PWA Can Do Today';
+  
+  const payload = {
+    body
+  };
+  
+  if('showNotification' in registration) {
+    registration.showNotification(title, payload);
+  }
+  else {
+    new Notification(title, payload);
+  }
+};
 //morpion grid
 export default {
   data() {
@@ -17,7 +48,6 @@ export default {
       columns: 3,
       rows: 3,
       isCrossPlayer: true,
-      registration: null,
       notificationPermissionState,
     }
   },
@@ -55,7 +85,7 @@ export default {
         }
         if (win) {
           console.log(`Player ${playerSymbol} wins in row ${i + 1}!`);
-          this.sendNotification(playerSymbol)
+          sendNotification(playerSymbol)
           return;
         }
       }
@@ -71,7 +101,7 @@ export default {
         }
         if (win) {
           console.log(`Player ${playerSymbol} wins in column ${i + 1}!`);
-          this.sendNotification(playerSymbol)
+          sendNotification(playerSymbol)
           return;
         }
       }
@@ -85,7 +115,7 @@ export default {
           diagonal.every((index) => this.bordState[index] === playerSymbol)
         ) {
           console.log(`Player ${playerSymbol} wins on diagonal!`);
-          this.sendNotification(playerSymbol)
+          sendNotification(playerSymbol)
           return true;
         }
         return false;
@@ -95,43 +125,64 @@ export default {
         return;
       }
     },
-    async sendNotification(body) {
+    /*sendNotification(symbolOfWinner) {
+      //send a notification to the player
+      let notification
       if (Notification.permission === 'granted') {
-        this.showNotification(body);
-      } else {
-        if (Notification.permission !== 'denied') {
-          const permission = await Notification.requestPermission();
-
-          if (permission === 'granted') {
-            this.showNotification(body);
-          }
+        notification = new Notification(`Player ${symbolOfWinner} wins`, {
+          body: 'Click here to reset the game',
+          // Other optional options: icon, badge, etc.
+          icon: '/chad.png',
+        });
+        if (navigator.setAppBadge) {
+          console.log("The App Badging API is supported!");
+          navigator.setAppBadge();
         }
       }
-    },
-    showNotification(body) {
-      const title = 'What PWA Can Do Today';
-
-      const payload = {
-        body
+      // Handle notification click event
+      notification.onclick = () => {
+        // Handle notification click action
+        console.log('Notification clicked');
+        //reset the board
+        this.bordState = ["", "", "", "", "", "", "", "", ""],
+          //return to the X player turn
+          this.isCrossPlayer = true
+        // Clean up the notification
+        notification.close();
       };
-
-      if ('showNotification' in this.registration) {
-        this.registration.showNotification(title, payload);
-      } else {
-        new Notification(title, payload);
+      navigator.serviceWorker.register("sw.js");
+      Notification.requestPermission((result) => {
+    if (result === "granted") {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.showNotification("Vibration Sample", {
+          body: "Buzz! Buzz!",
+          icon: "../images/touch/chrome-touch-icon-192x192.png",
+          vibrate: [200, 100, 200, 100, 200, 100, 200],
+          tag: "vibration-sample",
+        });
+      });
+    }
+  });
+    },
+    promptNotification() {
+      if (Notification.permission !== 'granted') {
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            // User has granted permission
+            console.log('Notification permission granted');
+            this.notificationPermissionState = Notification.permission
+          } else {
+            // User has denied permission or dismissed the prompt
+            console.log('Notification permission denied');
+            this.notificationPermissionState = Notification.permission
+          }
+        });
       }
-    },
-    async initializeServiceWorker() {
-      this.registration = await navigator.serviceWorker.getRegistration();
-    },
+    },*/
     reset(){
       this.bordState = ["", "", "", "", "", "", "", "", ""],
       this.isCrossPlayer = true
-    },
-    beforeMount() {
-    this.initializeServiceWorker();
-  }
-
+    }
   }
 }
 
@@ -153,7 +204,7 @@ export default {
       </td>
     </tr>
   </table>
-  <button v-on:click="promptNotification">Get Notifications?</button>
+  <button v-on:click="sendNotification">Get Notifications?</button>
   <!-- add a reset button -->
   <button v-on:click="reset">Reset</button>
 </template>
