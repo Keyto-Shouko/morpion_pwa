@@ -5,96 +5,149 @@
 window.addEventListener("deviceorientation", (event) => {
   console.log(`${event.alpha} : ${event.beta} : ${event.gamma}`);
 });
+
 //morpion grid
 export default {
   data() {
     return {
-      bordState: [
-        ["", "", ""],
-        ["", "", ""],
-        ["", "", ""],
-      ],
+      bordState: ["", "", "", "", "", "", "", "", ""],
       columns: 3,
       rows: 3,
       isCrossPlayer: true,
+      registration: navigator.serviceWorker.getRegistration(),
+
     }
   },
   methods: {
     applySymbol(rowIndex, columIndex, isCrossPlayer) {
-      console.log(this.bordState)
-      if (this.bordState[rowIndex][columIndex] != "") {
-        return
+      const index = rowIndex * this.columns + columIndex;
+      if (this.bordState[index] !== "") {
+        return;
       }
       if (this.isCrossPlayer) {
-        this.bordState[rowIndex][columIndex] = "X"
+        this.bordState[index] = "X";
       } else {
-        this.bordState[rowIndex][columIndex] = "O"
+        this.bordState[index] = "O";
       }
-      this.checkWin(rowIndex, columIndex)
-      this.isCrossPlayer = !isCrossPlayer
+      // ...
+      this.checkWin()
+      this.isCrossPlayer = !this.isCrossPlayer;
     },
-    checkWin(row, column) {
-      //check if there is a winner
-      //check if there is a draw
-      // let symbolToCheck = this.isCrossPlayer ? "X" : "O"
-      // console.log("symbolToCheck", symbolToCheck)
-      // const filterXBoard = this.bordState.filter(symbol => symbol[0][0] == symbolToCheck)
-      // console.log(filterXBoard)
-      //check where the player played his symbol
-      console.log("row", row)
-      console.log("column", column)
-      if (row == 0 && column == 0 || row == 0 && column == 2 || row == 2 && column == 0 || row == 2 && column == 2) {
-        console.log("diagnonals")
-        /*if(row-1<0){
+    checkWin() {
+      //check if the bord is full and reset it
+      if (!this.bordState.includes("")) {
+        this.bordState = ["", "", "", "", "", "", "", "", ""],
+          this.isCrossPlayer = true
+      }
+      const playerSymbol = this.isCrossPlayer ? 'X' : 'O';
 
-        }*/
-        //check if the player won
-        //check if the player draw
-      }
-      else if (row == 0 && column == 1 || row == 1 && column == 0 || row == 1 && column == 2 || row == 2 && column == 1) {
-        console.log("Losange")
-        //check if the player won
-        //check if the player draw
-      }
-      else if (row == 1 && column == 1) {
-        console.log("center")
-      }
-      //this is the cheat code to use the notification
-      if (this.bordState[0][0] == "X" && this.bordState[0][1] == "X" && this.bordState[0][2] == "X") {
-        //send a notification to the player
-        //check if he granted access to notifications
-        //if yes send a notification
-        let notifTitle = "Notif Title";
-        let notifBody = 'Créé par  Moi.';
-        let notifImg = 'data/img/chad.png';
-        let options = {
-          body: notifBody,
-          icon: notifImg
+      // Check rows
+      for (let i = 0; i < this.rows; i++) {
+        let win = true;
+        for (let j = 0; j < this.columns; j++) {
+          if (this.bordState[i * this.columns + j] !== playerSymbol) {
+            win = false;
+            break;
+          }
         }
-        new Notification(notifTitle, options);
+        if (win) {
+          console.log(`Player ${playerSymbol} wins in row ${i + 1}!`);
+          this.sendNotification(playerSymbol)
+          return;
+        }
       }
+
+      // Check columns
+      for (let i = 0; i < this.columns; i++) {
+        let win = true;
+        for (let j = 0; j < this.rows; j++) {
+          if (this.bordState[j * this.columns + i] !== playerSymbol) {
+            win = false;
+            break;
+          }
+        }
+        if (win) {
+          console.log(`Player ${playerSymbol} wins in column ${i + 1}!`);
+          this.sendNotification(playerSymbol)
+          return;
+        }
+      }
+
+      // Check diagonals
+      const diagonal1 = [0, 4, 8];
+      const diagonal2 = [2, 4, 6];
+
+      const checkDiagonal = (diagonal) => {
+        if (
+          diagonal.every((index) => this.bordState[index] === playerSymbol)
+        ) {
+          console.log(`Player ${playerSymbol} wins on diagonal!`);
+          this.sendNotification(playerSymbol)
+          return true;
+        }
+        return false;
+      };
+
+      if (checkDiagonal(diagonal1) || checkDiagonal(diagonal2)) {
+        return;
+      }
+    },
+    sendNotification(symbolOfWinner) {
+      //send a notification to the player
+      let notification
+      if (Notification.permission === 'granted') {
+        notification = new Notification(`Player ${symbolOfWinner} wins`, {
+          body: 'Click here to reset the game',
+          // Other optional options: icon, badge, etc.
+          icon: '/chad.png',
+        });
+        if (navigator.setAppBadge) {
+          console.log("The App Badging API is supported!");
+          navigator.setAppBadge();
+        }
+      }
+      // Handle notification click event
+      notification.onclick = () => {
+        // Handle notification click action
+        console.log('Notification clicked');
+        //reset the board
+        this.bordState = ["", "", "", "", "", "", "", "", ""],
+          //return to the X player turn
+          this.isCrossPlayer = true
+        // Clean up the notification
+        notification.close();
+      };
     },
     promptNotification() {
-      Notification.requestPermission().then(function (result) {
-        console.log(result);
-      });
+      console.log("permission", Notification.permission)
+      if (Notification.permission !== 'granted') {
+        Notification.requestPermission();
+
+      }
     }
   }
 }
+
 </script>
 <template>
   <h1>Morpion</h1>
+  <!-- Display current player -->
+  <p>Current player :</p>
+  <p v-if="this.isCrossPlayer">X</p>
+  <p v-else>O</p>
   <table>
-    <th v-for="(column, columIndex) in columns">
-      <tr v-for="(row, rowIndex) in rows">
-        <td v-on:click="applySymbol(rowIndex, columIndex, isCrossPlayer)">
-          {{ bordState[rowIndex][columIndex] }}
-        </td>
-      </tr>
-    </th>
+
+    <tr v-for="(row, rowIndex) in 3" :key="rowIndex">
+      <td v-for="(column, columnIndex) in 3" :key="columnIndex"
+        v-on:click="applySymbol(rowIndex, columnIndex, isCrossPlayer)">
+        {{ bordState[rowIndex * 3 + columnIndex] }}
+      </td>
+    </tr>
   </table>
-  <button v-on:click="promptNotification">Get Notifications ?</button>
+  <button v-on:click="promptNotification">Get Notifications?</button>
+  <!-- add a reset button -->
 </template>
+
 
 <style scoped>
 table td {
