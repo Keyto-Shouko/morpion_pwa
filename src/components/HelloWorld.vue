@@ -15,7 +15,7 @@ export default {
       rows: 3,
       isCrossPlayer: true,
       registration: navigator.serviceWorker.getRegistration(),
-
+      notificationPermissionState : Notification.permission
     }
   },
   methods: {
@@ -135,6 +135,8 @@ export default {
 </script>
 <template>
   <h1>Morpion</h1>
+  <!-- Display notification permission state -->
+  <p>Notification permission state is {{notificationPermissionState}} </p>
   <!-- Display current player -->
   <p>Current player :</p>
   <p v-if="this.isCrossPlayer">X</p>
