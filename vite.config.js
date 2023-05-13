@@ -7,7 +7,6 @@ export default defineConfig({
   plugins: [vue(),VitePWA({
     manifest: {
       name: 'Morpion Game',
-      orientation: "portrait",
       short_name: 'Morpion',
       description: 'A super Morpion Game',
       theme_color: '##c49129',
