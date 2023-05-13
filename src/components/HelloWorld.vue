@@ -1,7 +1,11 @@
 <script setup lang="js">
+
 </script>
 
 <script>
+import { ref } from 'vue';
+// Create a reactive reference for notificationPermissionState
+const notificationPermissionState = ref(Notification.permission);
 window.addEventListener("deviceorientation", (event) => {
   console.log(`${event.alpha} : ${event.beta} : ${event.gamma}`);
 });
@@ -15,7 +19,7 @@ export default {
       rows: 3,
       isCrossPlayer: true,
       registration: navigator.serviceWorker.getRegistration(),
-      notificationPermissionState : Notification.permission
+      notificationPermissionState,
     }
   },
   methods: {
@@ -117,12 +121,33 @@ export default {
         // Clean up the notification
         notification.close();
       };
+      navigator.serviceWorker.register("sw.js");
+      Notification.requestPermission((result) => {
+    if (result === "granted") {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.showNotification("Vibration Sample", {
+          body: "Buzz! Buzz!",
+          icon: "../images/touch/chrome-touch-icon-192x192.png",
+          vibrate: [200, 100, 200, 100, 200, 100, 200],
+          tag: "vibration-sample",
+        });
+      });
+    }
+  });
     },
     promptNotification() {
-      console.log("permission", Notification.permission)
       if (Notification.permission !== 'granted') {
-        Notification.requestPermission();
-
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            // User has granted permission
+            console.log('Notification permission granted');
+            this.notificationPermissionState = Notification.permission
+          } else {
+            // User has denied permission or dismissed the prompt
+            console.log('Notification permission denied');
+            this.notificationPermissionState = Notification.permission
+          }
+        });
       }
     },
     reset(){
