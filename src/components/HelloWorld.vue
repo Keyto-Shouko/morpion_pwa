@@ -33,8 +33,8 @@ const sendNotification = async () => {
     body
   };
   
-  if('showNotification' in registration) {
-    registration.showNotification(title, payload);
+  if('showNotification' in this.registration) {
+    this.registration.showNotification(title, payload);
   }
   else {
     new Notification(title, payload);
