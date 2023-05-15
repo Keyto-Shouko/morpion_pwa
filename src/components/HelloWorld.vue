@@ -105,6 +105,7 @@ export default {
           // Other optional options: icon, badge, etc.
           icon: '/chad.png',
         });
+        window.navigator.vibrate([100,30,100,30,100,30,200,30,200,30,200,30,100,30,100,30,100]); // Vibre 'SOS' en Morse.
         if (navigator.setAppBadge) {
           console.log("The App Badging API is supported!");
           navigator.setAppBadge();
