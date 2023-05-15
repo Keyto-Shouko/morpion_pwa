@@ -146,14 +146,14 @@ export default {
   mounted() {
     //check if service worker is available in browser
 
-    if ("serviceWorker" in navigator) {
+    /*if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").then(reg => {
         console.log("Registration succesful, scope: " + reg.scope);
       })
         .catch(err => {
           console.log(err);
         })
-    }
+    }*/
 
   },
   created() {
