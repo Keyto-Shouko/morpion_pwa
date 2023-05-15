@@ -6,6 +6,9 @@ window.addEventListener("deviceorientation", (event) => {
   console.log(`${event.alpha} : ${event.beta} : ${event.gamma}`);
 });
 
+
+
+
 //morpion grid
 export default {
   data() {
@@ -15,7 +18,8 @@ export default {
       rows: 3,
       isCrossPlayer: true,
       registration: navigator.serviceWorker.getRegistration(),
-      notificationPermissionState : Notification.permission
+      notificationPermissionState: Notification.permission,
+      deferredPrompt: null
     }
   },
   methods: {
@@ -125,18 +129,51 @@ export default {
 
       }
     },
-    reset(){
+    reset() {
       this.bordState = ["", "", "", "", "", "", "", "", ""],
-      this.isCrossPlayer = true
+        this.isCrossPlayer = true
+    },
+    async dismiss() {
+      this.deferredPrompt = null;
+      console.log("deferredPrompt", this.deferredPrompt)
+    },
+    async install() {
+      console.log("installing")
+      console.log("deferredPrompt", this.deferredPrompt)
+      this.deferredPrompt.prompt();
     }
-  }
+  },
+  mounted() {
+    //check if service worker is available in browser
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").then(reg => {
+        console.log("Registration succesful, scope: " + reg.scope);
+      })
+        .catch(err => {
+          console.log(err);
+        })
+    }
+
+  },
+  created() {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      console.log("e", e)
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      this.deferredPrompt = e;
+    });
+    window.addEventListener("appinstalled", () => {
+      this.deferredPrompt = null;
+    });
+  },
 }
 
 </script>
 <template>
   <h1>Morpion</h1>
   <!-- Display notification permission state -->
-  <p>Notification permission state is {{notificationPermissionState}} </p>
+  <p>Notification permission state is {{ notificationPermissionState }} </p>
   <!-- Display current player -->
   <p>Current player :</p>
   <p v-if="this.isCrossPlayer">X</p>
@@ -153,6 +190,7 @@ export default {
   <button v-on:click="promptNotification">Get Notifications?</button>
   <!-- add a reset button -->
   <button v-on:click="reset">Reset</button>
+  <button id="installApp" v-on:click="install">Install</button>
 </template>
 
 
