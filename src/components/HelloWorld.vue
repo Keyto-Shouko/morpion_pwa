@@ -167,6 +167,10 @@ export default {
       this.deferredPrompt = null;
     });
   },
+  updated(){
+    console.log("updated")
+    console.log("this.deferredPrompt", this.deferredPrompt) 
+  }
 }
 
 </script>
